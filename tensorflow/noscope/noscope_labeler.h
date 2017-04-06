@@ -5,7 +5,6 @@
 
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/platform/env.h"
-#include "tensorflow/cc/ops/standard_ops.h"
 #include "tensorflow/core/framework/graph.pb.h"
 #include "tensorflow/core/graph/default_device.h"
 

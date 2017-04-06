@@ -29,6 +29,9 @@ cc_binary(
     srcs = glob(["*.h"]) + glob(["*.cc"]),
     deps = [
         "//tensorflow/core:tensorflow",
+        "//tensorflow/cc:cc_ops",
+        "//tensorflow/cc:ops",
+        "//tensorflow/cc:scope",
         "//tensorflow/noscope/darknet:yolo",
         "//tensorflow/core:cuda",
         "//tensorflow/core:gpu_lib",
