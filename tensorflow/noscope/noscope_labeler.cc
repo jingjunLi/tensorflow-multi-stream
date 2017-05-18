@@ -56,13 +56,13 @@ void NoscopeLabeler::NormalizeFrames() {
   if (!avg_.isContinuous()) {
     throw std::runtime_error("avg_ is not cont");
   }
+
+  const float* avg = (float *) avg_.data;
   #pragma omp parallel for num_threads(kNumThreads_) schedule(static)
   for (size_t i = 0; i < kNbFrames; i++) {
-    cv::Mat tmp = cv::Mat(NoscopeData::kDistResol_,
-                          CV_32FC3,
-                          &cnn_frame_data_[i * kFrameSize]);
-    tmp /= 255.0;
-    tmp -= avg_;
+    for (size_t j = 0; j < kFrameSize; j++) {
+      cnn_frame_data_[i * kFrameSize + j] = cnn_frame_data_[i * kFrameSize + j] / 255. - avg[j];
+    }
   }
 }
 
@@ -92,20 +92,28 @@ void NoscopeLabeler::RunDifferenceFilter(const float lower_thresh,
 }
 
 void NoscopeLabeler::PopulateCNNFrames() {
+  auto start = std::chrono::high_resolution_clock::now();
+
   for (size_t i = 0; i < kDiffDelay_; i++) cnn_frame_ind_.push_back(i);
 
   const std::vector<float>& kDistData = all_data_.dist_data_;
   const int kFrameSize = NoscopeData::kDistFrameSize_;
   cnn_frame_data_.resize(cnn_frame_ind_.size() * kFrameSize, 0);
 
+  const float* avg = (float *) avg_.data;
+  #pragma omp parallel for num_threads(kNumThreads_) schedule(static)
   for (size_t i = 0; i < cnn_frame_ind_.size(); i++) {
-    const float *start = &kDistData[cnn_frame_ind_[i] * kFrameSize];
-    memcpy(&cnn_frame_data_[i * kFrameSize], start, kFrameSize * sizeof(float));
+    const float *input = &kDistData[cnn_frame_ind_[i] * kFrameSize];
+    for (size_t j = 0; j < kFrameSize; j++) {
+      cnn_frame_data_[i * kFrameSize + j] = input[j] / 255. - avg[j];
+    }
   }
 
-  NormalizeFrames();
 
   // std::cout << "CNN frame data size: " << cnn_frame_data_.size() << "\n";
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end - start;
+  std::cout << "PopulateCNNFrames time: " << diff.count() << " s" << std::endl;
 }
 
 void NoscopeLabeler::RunSmallCNN(const float lower_thresh, const float upper_thresh) {
@@ -170,6 +178,26 @@ void NoscopeLabeler::RunSmallCNN(const float lower_thresh, const float upper_thr
       }
     }
   }
+}
+
+static image ipl_to_image(IplImage* src) {
+  unsigned char *data = (unsigned char *)src->imageData;
+  // float *data = (float *) src->imageData;
+  int h = src->height;
+  int w = src->width;
+  int c = src->nChannels;
+  int step = src->widthStep;// / sizeof(float);
+  image out = make_image(w, h, c);
+  int count = 0;
+
+  for (int k = 0; k < c; ++k) {
+    for(int i = 0; i < h; ++i) {
+      for(int j = 0; j < w; ++j) {
+        out.data[count++] = data[i*step + j*c + k]/255.;
+      }
+    }
+  }
+  return out;
 }
 
 void NoscopeLabeler::RunYOLO(const bool actually_run) {
