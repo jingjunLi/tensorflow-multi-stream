@@ -16,17 +16,20 @@ load(
 # tf_cuda_library(
 cc_binary(
     name = "noscope",
-    copts = ["-I/usr/local/include/opencv2", "-O3", "-fopenmp"] + if_cuda(["-DGOOGLE_CUDA=1"]),
+    copts = [
+        "-I/lfs/0/ddkang/local/include", "-I/lfs/0/ddkang/local/include/opencv2", "-I/lfs/0/ddkang/local/include/opencv",
+        "-O3", "-fopenmp"
+    ] + if_cuda(["-DGOOGLE_CUDA=1"]),
     linkopts = [
         "-fopenmp",
-        "-L/usr/local/lib",
+        "-L/lfs/0/ddkang/local/lib",
         "-lopencv_core",
         "-lopencv_imgcodecs",
         "-lopencv_imgproc",
         "-lopencv_highgui",
         "-lopencv_videoio"
     ],
-    srcs = glob(["*.h"]) + glob(["*.cc"]),
+    srcs = glob(["*.h"]) + glob(["*.cc"], exclude=["dumper.cc"]),
     deps = [
         "//tensorflow/core:tensorflow",
         "//tensorflow/cc:cc_ops",
@@ -36,5 +39,27 @@ cc_binary(
         "//tensorflow/core:cuda",
         "//tensorflow/core:gpu_lib",
         "@local_config_cuda//cuda:cuda_headers"
+    ]
+)
+
+cc_binary(
+    name = "dumper",
+    copts = [
+        "-I/lfs/0/ddkang/local/include", "-I/lfs/0/ddkang/local/include/opencv2", "-I/lfs/0/ddkang/local/include/opencv",
+        "-O3", "-fopenmp"
+    ],
+    linkopts = [
+        "-fopenmp",
+        "-L/lfs/0/ddkang/local/lib",
+        "-lopencv_core",
+        "-lopencv_imgcodecs",
+        "-lopencv_imgproc",
+        "-lopencv_highgui",
+        "-lopencv_videoio"
+    ],
+    srcs = glob(["noscope_data.h"]) + glob(["noscope_data.cc", "dumper.cc"]),
+    deps = [
+        "//tensorflow/core:tensorflow",
+        "//tensorflow/cc:scope",
     ]
 )
