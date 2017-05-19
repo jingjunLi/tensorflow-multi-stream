@@ -46,26 +46,6 @@ NoscopeLabeler::NoscopeLabeler(tensorflow::Session *session,
   memcpy(avg_.data, &nums[0], NoscopeData::kDistFrameSize_ * sizeof(float));
 }
 
-void NoscopeLabeler::NormalizeFrames() {
-  const size_t kFrameSize = NoscopeData::kDistFrameSize_;
-  const size_t kNbFrames = cnn_frame_ind_.size();
-
-  if (kFrameSize * kNbFrames != cnn_frame_data_.size()) {
-    throw std::runtime_error("something REALLY BAD happened");
-  }
-  if (!avg_.isContinuous()) {
-    throw std::runtime_error("avg_ is not cont");
-  }
-
-  const float* avg = (float *) avg_.data;
-  #pragma omp parallel for num_threads(kNumThreads_) schedule(static)
-  for (size_t i = 0; i < kNbFrames; i++) {
-    for (size_t j = 0; j < kFrameSize; j++) {
-      cnn_frame_data_[i * kFrameSize + j] = cnn_frame_data_[i * kFrameSize + j] / 255. - avg[j];
-    }
-  }
-}
-
 void NoscopeLabeler::RunDifferenceFilter(const float lower_thresh,
                                       const float upper_thresh,
                                       const bool const_ref,
@@ -98,36 +78,12 @@ void NoscopeLabeler::PopulateCNNFrames() {
 
   const std::vector<float>& kDistData = all_data_.dist_data_;
   const int kFrameSize = NoscopeData::kDistFrameSize_;
-  cnn_frame_data_.resize(cnn_frame_ind_.size() * kFrameSize, 0);
-
-  const float* avg = (float *) avg_.data;
-  #pragma omp parallel for num_threads(kNumThreads_) schedule(static)
-  for (size_t i = 0; i < cnn_frame_ind_.size(); i++) {
-    const float *input = &kDistData[cnn_frame_ind_[i] * kFrameSize];
-    for (size_t j = 0; j < kFrameSize; j++) {
-      cnn_frame_data_[i * kFrameSize + j] = input[j] / 255. - avg[j];
-    }
-  }
 
 
-  // std::cout << "CNN frame data size: " << cnn_frame_data_.size() << "\n";
-  auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff = end - start;
-  std::cout << "PopulateCNNFrames time: " << diff.count() << " s" << std::endl;
-}
-
-void NoscopeLabeler::RunSmallCNN(const float lower_thresh, const float upper_thresh) {
   using namespace tensorflow;
-
-  const size_t kFrameSize = NoscopeData::kDistFrameSize_;
   const size_t kNbCNNFrames = cnn_frame_ind_.size();
-
-  Tensor learning_phase(DT_BOOL, TensorShape());
-  learning_phase.scalar<bool>()() = false;
-
-  // Round up
   const size_t kNbLoops = (kNbCNNFrames + kMaxCNNImages_ - 1) / kMaxCNNImages_;
-
+  const float* avg = (float *) avg_.data;
   for (size_t i = 0; i < kNbLoops; i++) {
     const size_t kImagesToRun =
         std::min(kMaxCNNImages_, cnn_frame_ind_.size() - i * kMaxCNNImages_);
@@ -136,6 +92,36 @@ void NoscopeLabeler::RunSmallCNN(const float lower_thresh, const float upper_thr
                              NoscopeData::kDistResol_.height,
                              NoscopeData::kDistResol_.width,
                              kNbChannels_}));
+    auto input_mapped = input.tensor<float, 4>();
+    float *tensor_start = &input_mapped(0, 0, 0, 0);
+    #pragma omp parallel for
+    for (size_t j = 0; j < kImagesToRun; j++) {
+      const size_t kImgInd = i * kMaxCNNImages_ + j;
+      float *output = tensor_start + j * kFrameSize;
+      const float *input = &kDistData[cnn_frame_ind_[kImgInd] * kFrameSize];
+      for (size_t k = 0; k < kFrameSize; k++)
+        output[k] = input[k] / 255. - avg[k];
+    }
+    dist_tensors_.push_back(input);
+  }
+
+
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end - start;
+  // std::cout << "PopulateCNNFrames time: " << diff.count() << " s" << std::endl;
+}
+
+void NoscopeLabeler::RunSmallCNN(const float lower_thresh, const float upper_thresh) {
+  using namespace tensorflow;
+
+  // Round up
+  const size_t kNbCNNFrames = cnn_frame_ind_.size();
+  const size_t kNbLoops = (kNbCNNFrames + kMaxCNNImages_ - 1) / kMaxCNNImages_;
+
+  for (size_t i = 0; i < kNbLoops; i++) {
+    const size_t kImagesToRun =
+        std::min(kMaxCNNImages_, cnn_frame_ind_.size() - i * kMaxCNNImages_);
+    auto input = dist_tensors_[i];
     /*cudaHostRegister(&(input.tensor<float, 4>()(0, 0, 0, 0)),
                      kImagesToRun * kFrameSize * sizeof(float),
                      cudaHostRegisterPortable);*/
@@ -147,16 +133,8 @@ void NoscopeLabeler::RunSmallCNN(const float lower_thresh, const float upper_thr
       // {"keras_learning_phase", learning_phase},
     };
 
-    // Copy memory into the tensor. This is EXTREMELY UNSAFE!!
-    {
-      auto input_mapped = input.tensor<float, 4>();
-      float *start = &input_mapped(0, 0, 0, 0);
-      const size_t kCopySize = kImagesToRun * kFrameSize * sizeof(float);
-      memcpy(start, &cnn_frame_data_[i * kMaxCNNImages_ * kFrameSize], kCopySize);
-    }
-
     tensorflow::Status status = session_->Run(inputs, {"output_prob"}, {}, &outputs);
-    TF_CHECK_OK(status);
+    // TF_CHECK_OK(status);
     // FIXME: should probably check the tensor output size here.
 
     {
@@ -191,13 +169,20 @@ static image ipl_to_image(IplImage* src) {
   int count = 0;
 
   for (int k = 0; k < c; ++k) {
-    for(int i = 0; i < h; ++i) {
-      for(int j = 0; j < w; ++j) {
+    for (int i = 0; i < h; ++i) {
+      for (int j = 0; j < w; ++j) {
         out.data[count++] = data[i*step + j*c + k]/255.;
       }
     }
   }
   return out;
+}
+static void noscope_rgbgr_image(image im) {
+  for (int i = 0; i < im.w*im.h; ++i) {
+    float swap = im.data[i];
+    im.data[i] = im.data[i + im.w*im.h*2];
+    im.data[i + im.w*im.h*2] = swap;
+  }
 }
 
 void NoscopeLabeler::RunYOLO(const bool actually_run) {

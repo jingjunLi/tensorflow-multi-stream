@@ -26,8 +26,6 @@ class NoscopeLabeler {
               const std::string& avg_fname,
               const noscope::NoscopeData& data);
 
-  void NormalizeFrames();
-
   // This currently ignores the upper threshold
   void RunDifferenceFilter(const float lower_thresh, const float upper_thresh,
                            const bool const_ref, const size_t kRef);
@@ -74,7 +72,6 @@ class NoscopeLabeler {
   std::vector<float> diff_confidence_;
 
   std::vector<int> cnn_frame_ind_;
-  std::vector<float> cnn_frame_data_; // FIXME: remove
   std::vector<float> cnn_confidence_;
 
   yolo::YOLO *yolo_;
@@ -84,6 +81,8 @@ class NoscopeLabeler {
   cv::Mat avg_;
 
   tensorflow::Session *session_;
+
+  std::vector<tensorflow::Tensor> dist_tensors_;
 };
 
 } // namespace noscope
