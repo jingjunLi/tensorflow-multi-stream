@@ -171,17 +171,19 @@ static image ipl_to_image(IplImage* src) {
   for (int k = 0; k < c; ++k) {
     for (int i = 0; i < h; ++i) {
       for (int j = 0; j < w; ++j) {
-        out.data[count++] = data[i*step + j*c + k]/255.;
+        out.data[count++] = data[i*step + j*c + (2 - k)] / 255.;
+        // out.data[count++] = data[i*step + j*c + k] / 255.;
       }
     }
   }
   return out;
 }
 static void noscope_rgbgr_image(image im) {
-  for (int i = 0; i < im.w*im.h; ++i) {
+  int i;
+  for (i = 0; i < im.w*im.h; ++i) {
     float swap = im.data[i];
-    im.data[i] = im.data[i + im.w*im.h*2];
-    im.data[i + im.w*im.h*2] = swap;
+    im.data[i] = im.data[i+im.w*im.h*2];
+    im.data[i+im.w*im.h*2] = swap;
   }
 }
 
@@ -198,7 +200,7 @@ void NoscopeLabeler::RunYOLO(const bool actually_run) {
 
       IplImage frame = cpp_frame;
       image yolo_frame = ipl_to_image(&frame);
-      rgbgr_image(yolo_frame);
+      // noscope_rgbgr_image(yolo_frame);
       yolo_confidence_[i] = yolo_->LabelFrame(yolo_frame);
       free_image(yolo_frame);
       /*if (yolo_confidence_[i] != 0)
