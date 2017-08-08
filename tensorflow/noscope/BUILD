@@ -17,12 +17,12 @@ load(
 cc_binary(
     name = "noscope",
     copts = [
-        "-I/lfs/0/ddkang/local/include", "-I/lfs/0/ddkang/local/include/opencv2", "-I/lfs/0/ddkang/local/include/opencv",
+        "-I/usr/local/include", "-I/usr/local/include/opencv2", "-I/usr/local/include/opencv",
         "-O3", "-fopenmp"
     ] + if_cuda(["-DGOOGLE_CUDA=1"]),
     linkopts = [
         "-fopenmp",
-        "-L/lfs/0/ddkang/local/lib",
+        "-L/usr/local/lib/",
         "-lopencv_core",
         "-lopencv_imgcodecs",
         "-lopencv_imgproc",
@@ -45,12 +45,12 @@ cc_binary(
 cc_binary(
     name = "dumper",
     copts = [
-        "-I/lfs/0/ddkang/local/include", "-I/lfs/0/ddkang/local/include/opencv2", "-I/lfs/0/ddkang/local/include/opencv",
+        "-I/usr/local/include", "-I/usr/local/include/opencv2", "-I/usr/local/include/opencv",
         "-O3", "-fopenmp"
     ],
     linkopts = [
         "-fopenmp",
-        "-L/lfs/0/ddkang/local/lib",
+        "-L/usr/local/lib/",
         "-lopencv_core",
         "-lopencv_imgcodecs",
         "-lopencv_imgproc",

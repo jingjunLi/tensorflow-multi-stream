@@ -60,7 +60,7 @@ static tensorflow::Session* InitSession(const std::string& graph_fname) {
   tensorflow::SessionOptions opts;
   tensorflow::GraphDef graph_def;
   // YOLO needs some memory
-  opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(0.9);
+  opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(0.8);
   // opts.config.mutable_gpu_options()->set_allow_growth(true);
   tensorflow::Status status = NewSession(opts, &session);
   TF_CHECK_OK(status);

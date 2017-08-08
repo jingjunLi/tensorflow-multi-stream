@@ -5,6 +5,7 @@
 #include <x86intrin.h>
 
 #include <string>
+#include <fstream>
 
 #include "opencv2/opencv.hpp"
 
