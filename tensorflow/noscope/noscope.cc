@@ -19,6 +19,8 @@
 #include "tensorflow/noscope/noscope_labeler.h"
 #include "tensorflow/noscope/noscope_data.h"
 #include "tensorflow/noscope/darknet/src/yolo.h"
+#include "tensorflow/noscope/simple_queue.h"
+#include "tensorflow/noscope/noscope_data.h"
 
 using tensorflow::Flag;
 
@@ -60,8 +62,8 @@ static tensorflow::Session* InitSession(const std::string& graph_fname) {
   tensorflow::SessionOptions opts;
   tensorflow::GraphDef graph_def;
   // YOLO needs some memory
-  opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(0.8);
-  // opts.config.mutable_gpu_options()->set_allow_growth(true);
+  // opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(0.8);
+   opts.config.mutable_gpu_options()->set_allow_growth(true);
   tensorflow::Status status = NewSession(opts, &session);
   TF_CHECK_OK(status);
 
@@ -100,21 +102,6 @@ static noscope::NoscopeData* LoadVideo(const std::string& video, const std::stri
   return data;
 }
 
-noscope::filters::DifferenceFilter GetDiffFilter(const bool kUseBlocked,
-                                              const bool kSkipDiffDetection) {
-  noscope::filters::DifferenceFilter nothing{noscope::filters::DoNothing, "DoNothing"};
-  noscope::filters::DifferenceFilter blocked{noscope::filters::BlockedMSE, "BlockedMSE"};
-  noscope::filters::DifferenceFilter global{noscope::filters::GlobalMSE, "GlobalMSE"};
-
-  if (kSkipDiffDetection) {
-    return nothing;
-  }
-  if (kUseBlocked) {
-    return blocked;
-  } else {
-    return global;
-  }
-}
 
 int main(int argc, char* argv[]) {
   std::string graph, video;
@@ -133,6 +120,7 @@ int main(int argc, char* argv[]) {
   std::string diff_detection_weights;
   std::string use_blocked;
   std::string ref_image;
+  std::string num_video;
   std::vector<Flag> flag_list = {
       Flag("graph", &graph, "Graph to be executed"),
       Flag("video", &video, "Video to load"),
@@ -153,6 +141,7 @@ int main(int argc, char* argv[]) {
       Flag("diff_detection_weights", &diff_detection_weights, "Difference detection weights"),
       Flag("use_blocked", &use_blocked, "0/1 whether or not to use blocked DD"),
       Flag("ref_image", &ref_image, "reference image"),
+      Flag("video_num", &num_video, "number of videos"),
   };
   std::string usage = tensorflow::Flags::Usage(argv[0], flag_list);
   const bool parse_result = tensorflow::Flags::Parse(&argc, argv, flag_list);
@@ -167,6 +156,7 @@ int main(int argc, char* argv[]) {
   const bool kSkipDiffDetection = std::stoi(skip_diff_detection);
   const bool kUseBlocked = std::stoi(use_blocked);
   const size_t kRefImage = std::stoi(ref_image);
+  const size_t video_num = std::stoi(num_video);
   if (!parse_result) {
     LOG(ERROR) << usage;
     return -1;
@@ -178,6 +168,18 @@ int main(int argc, char* argv[]) {
 
   tensorflow::Session *session = InitSession(graph);
   yolo::YOLO *yolo_classifier = new yolo::YOLO(yolo_cfg, yolo_weights, kYOLOClass);
+
+  //std::vector<std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > > gQueues;
+  //std::vector<std::unique_ptr<noscope::NoscopeStream > > nStreams;
+  for (int i = 0; i < video_num; ++i) {
+      //auto gQueue = std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> >(new noscope::SimpleQueue<noscope::Frame *>);
+      //std::shared_ptr<noscope::SimpleQueue<noscope::Frame* > > gQueue(new noscope::SimpleQueue<noscope::Frame* >());
+      //gQueues.push_back(gQueue);
+
+      //std::unique_ptr<noscope::NoscopeStream > nStream(new noscope::SimpleQueue<noscope::NoscopeStream>());
+      //nStreams.push_back(nStream);
+  }
+#if 0  
   noscope::NoscopeData *data = LoadVideo(video, dumped_videos, kSkip, kNbFrames, kStartFrom);
   noscope::filters::DifferenceFilter df = GetDiffFilter(kUseBlocked, kSkipDiffDetection);
 
@@ -223,6 +225,6 @@ int main(int argc, char* argv[]) {
                           distill_thresh_lower,
                           distill_thresh_upper,
                           runtimes);
-
+#endif
   return 0;
 }

@@ -18,8 +18,8 @@ typedef float (*DifferenceFilterFP)
     (const uint8_t *, const uint8_t *);
 
 typedef struct DifferenceFilter {
-  const DifferenceFilterFP fp;
-  const std::string name;
+  DifferenceFilterFP fp;
+  std::string name;
 } DifferenceFilter;
 
 const size_t kResol = 100;
