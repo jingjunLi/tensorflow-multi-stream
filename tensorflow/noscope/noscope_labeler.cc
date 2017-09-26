@@ -6,15 +6,9 @@
 #include <algorithm>
 #include <iterator>
 
-#include "tensorflow/core/public/session.h"
-#include "tensorflow/core/platform/env.h"
-#include "tensorflow/core/framework/graph.pb.h"
-#include "tensorflow/core/graph/default_device.h"
-
 #include "tensorflow/core/common_runtime/gpu/gpu_device.h"
 #include "tensorflow/core/platform/cuda.h"
 
-#include "opencv2/opencv.hpp"
 
 #include "tensorflow/noscope/noscope_labeler.h"
 #include "tensorflow/noscope/darknet/src/yolo.h"

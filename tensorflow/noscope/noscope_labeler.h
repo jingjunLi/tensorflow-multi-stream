@@ -1,14 +1,6 @@
 #ifndef TENSORFLOW_VUSE_VUSELABELER_H_
 #define TENSORFLOW_VUSE_VUSELABELER_H_
 
-#include "opencv2/opencv.hpp"
-
-#include "tensorflow/core/public/session.h"
-#include "tensorflow/core/platform/env.h"
-#include "tensorflow/core/framework/graph.pb.h"
-#include "tensorflow/core/graph/default_device.h"
-
-#include "tensorflow/noscope/filters.h"
 #include "tensorflow/noscope/noscope_data.h"
 #include "tensorflow/noscope/darknet/src/yolo.h"
 
