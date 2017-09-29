@@ -11,7 +11,7 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/videoio.hpp"
 
-#include "tensorflow/noscope/simple_queue.h"
+#include "tensorflow/noscope/util/simple_queue.h"
 #include "tensorflow/noscope/mse.h"
 #include "tensorflow/noscope/filters.h"
 #include "tensorflow/core/public/session.h"
