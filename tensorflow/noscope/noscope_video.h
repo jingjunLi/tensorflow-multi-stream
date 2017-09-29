@@ -15,13 +15,6 @@ class NoscopeVideo {
 
     ~NoscopeVideo();
     void Reading();
-    
-	static const cv::Size kDiffResol_;
-    static const cv::Size kDistResol_;
-    constexpr static size_t kNbChannels_ = 3;
-
-    constexpr static size_t kDiffFrameSize_ = 100 * 100 * kNbChannels_;
-    constexpr static size_t kDistFrameSize_ = 50 * 50 * kNbChannels_;
 	  
   private:
 /** the thread for reading video frames */
