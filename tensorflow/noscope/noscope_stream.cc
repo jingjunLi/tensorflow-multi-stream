@@ -69,13 +69,31 @@ void NoscopeStream::RunDifferenceFilter() {
   vQueue_->Pop(&frame_out);
   cv::resize(frame_out->frame, diff_frame, kDiffResol_, 0, 0, cv::INTER_NEAREST);
   memcpy(&diff_data[0], diff_frame.data, kDiffFrameSize_);
-
+#if 0
+  for (size_t i = 0; i < 10; i++)
+    std::cout << diff_data[i] ;
+  std::cout << std::endl;
+#endif
   const uint8_t *kRefImage = &diff_data[0]; // (const uint8_t *)diff_frame.data;
 
   while (true) {
+#if 0
+    const uint8_t *ptr = diff_frame.ptr<uint8_t>(0);
+    for (size_t j = 0; j < 10; j++) {
+      std::cout << ptr[j] << "  ";
+    }
+    std::cout << std::endl;
+    std::cout << "frame out: ";
+    const uint8_t *optr = frame_out->frame.ptr<uint8_t>(0);
+    for (size_t j = 0; j < 10; j++) {
+      std::cout << optr[j] << "  ";
+    }
+    std::cout << std::endl;
+#endif
     float tmp = diff_filt_.fp((const uint8_t *)diff_frame.data, kRefImage);   
     frame_out->diff_confidence = tmp;
-    std::cout << "frame id: " << frame_out->frame_id <<  "   diff_confidence    " << tmp << std::endl;
+    std::cout << "stream id: " << frame_out->video_id << "frame id: " << frame_out->frame_id 
+              <<  "   diff_confidence    " << tmp << std::endl;
 
     if (tmp < lower_thresh_) {
       frame_out->label = oNone;

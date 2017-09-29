@@ -47,6 +47,13 @@ void NoscopeVideo::Reading() {
 
       vQueue_->Push(frame_in);
       std::cout << "push " << i << std::endl;
+#if 0 
+      const uint8_t *ptr = frame_in->frame.ptr<uint8_t>(0);
+      for (size_t j = 0; j < 10; j++) {
+        std::cout << ptr[j] << "  ";
+      }
+      std::cout << std::endl;
+#endif
     }
   }
   vQueue_->NoMoreJobs();

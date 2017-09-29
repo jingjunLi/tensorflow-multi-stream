@@ -101,8 +101,8 @@ static noscope::NoscopeData* LoadVideo(const std::string& video, const std::stri
 int main(int argc, char* argv[]) {
 
   std::string video_name("/home/li/opensource/stanford-futuredata/data/videos/jackson-town-square.mp4"); 
-  const size_t kSkip = 3;
-  const size_t kNbFrames = 100;
+  const size_t kSkip = 300;
+  const size_t kNbFrames = 10000;
   const size_t kStartFrom = 5;
   std::string graph("/home/li/opensource/stanford-futuredata/data/cnn-models/jackson-town-square_convnet_128_32_0.pb");
   std::string avg_name("/home/li/opensource/stanford-futuredata/data/cnn-avg/jackson-town-square.txt");
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
           session, avg_name, fQueue, stream_id, kUseBlocked, kSkipDiffDetection, lower_thresh,
           upper_thresh, const_ref, kRef, distill_thresh_lower, distill_thresh_upper);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
   //std::vector<std::unique_ptr<noscope::NoscopeStream > > nStreams;
   //for (int i = 0; i < video_num; ++i) {
       //auto gQueue = std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> >(new noscope::SimpleQueue<noscope::Frame *>);
