@@ -1,5 +1,4 @@
 #include <sys/mman.h>
-
 #include <chrono>
 #include <ctime>
 #include <random>
@@ -14,14 +13,15 @@
 #include "tensorflow/noscope/noscope_data.h"
 #include "tensorflow/noscope/darknet/src/yolo.h"
 #include "tensorflow/noscope/noscope_data.h"
-#include "tensorflow/noscope/noscope_video.h"
+#include "tensorflow/noscope/stream_set.h"
+
+using tensorflow::Flag;
 
 int main(int argc, char* argv[]) {
-#if 0
-  std::vector<std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > > gQueues;
-  std::shared_ptr<noscope::SimpleQueue<noscope::Frame* > > fQueue(new noscope::SimpleQueue<noscope::Frame*>);
-  noscope::NoscopeVideo reader("/home/li/opensource/stanford-futuredata/data/videos/jackson-town-square.mp4", 3, 100, 5, fQueue, 0);
-#endif
+  //auto sQueue = std::shared_ptr<noscope::SimpleQueue<noscope::Frame* > >(new noscope::SimpleQueue<noscope::Frame*>); 
+  std::cout << "in main" << std::endl;
+  noscope::StreamSet stream_set("/home/li/opensource/stanford-futuredata/tensorflow-noscope/tensorflow/noscope/proto/streamSet.prototxt"); 
+  stream_set.Start();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   return 0;

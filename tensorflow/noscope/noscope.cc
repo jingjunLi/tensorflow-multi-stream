@@ -169,17 +169,6 @@ int main(int argc, char* argv[]) {
   tensorflow::Session *session = InitSession(graph);
   yolo::YOLO *yolo_classifier = new yolo::YOLO(yolo_cfg, yolo_weights, kYOLOClass);
 
-  //std::vector<std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > > gQueues;
-  //std::vector<std::unique_ptr<noscope::NoscopeStream > > nStreams;
-  for (int i = 0; i < video_num; ++i) {
-      //auto gQueue = std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> >(new noscope::SimpleQueue<noscope::Frame *>);
-      //std::shared_ptr<noscope::SimpleQueue<noscope::Frame* > > gQueue(new noscope::SimpleQueue<noscope::Frame* >());
-      //gQueues.push_back(gQueue);
-
-      //std::unique_ptr<noscope::NoscopeStream > nStream(new noscope::SimpleQueue<noscope::NoscopeStream>());
-      //nStreams.push_back(nStream);
-  }
-#if 0  
   noscope::NoscopeData *data = LoadVideo(video, dumped_videos, kSkip, kNbFrames, kStartFrom);
   noscope::filters::DifferenceFilter df = GetDiffFilter(kUseBlocked, kSkipDiffDetection);
 
@@ -225,6 +214,5 @@ int main(int argc, char* argv[]) {
                           distill_thresh_lower,
                           distill_thresh_upper,
                           runtimes);
-#endif
   return 0;
 }

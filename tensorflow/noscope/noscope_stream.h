@@ -3,47 +3,58 @@
 
 #include "tensorflow/noscope/common.h"
 #include "tensorflow/noscope/noscope_video.h"
+#include <fcntl.h>
 
 namespace noscope {
 
+using google::protobuf::Message;
+bool ReadProtoFromTextFile(const char* filename, Message* proto); 
+void DebugFrame_constuint8(const std::string& str, const uint8_t* ptr, int frames);
+void DebugFrame_vectorfloat(const std::string& str, std::vector<float> vec, int frames);
+
 class NoscopeStream {
   public:
-    NoscopeStream(const std::string& fname, const size_t kSkip, const size_t kNbFrames, const size_t kStart,
-            	tensorflow::Session *session,
-                const std::string& avg_fname, std::shared_ptr<noscope::SimpleQueue<noscope::Frame *> > gQueue,
-			    const size_t stream_id, const bool kUseBlocked, const bool kSkipDiffDetection,
-                const float lower_thresh, const float upper_thresh, const bool const_ref, const size_t kRef,
-                const float distill_thresh_lower, const float distill_thresh_upper
-                );
-    ~NoscopeStream();
+    NoscopeStream(const std::string& param_file);
+    NoscopeStream(const StreamParameter& param);
+    void Init(const StreamParameter& in_param);
+    void SetUp(const size_t stream_id, std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > gQueue);
+	void InitSession();
+    void Start();
     void RunDifferenceFilter();
     void PopulateCNNFrames();
+    bool IsEnd();
 
     void RunSmallCNN();
-
-    const float lower_thresh_;
-    const float upper_thresh_;
-    const float const_ref_;
-    const float kRef_;
-    const size_t stream_id_;
-    const float distill_thresh_lower_;
-    const float distill_thresh_upper_;
+    ~NoscopeStream();
 
     constexpr static size_t kNbChannels_ = 3;
 
-    constexpr static size_t kDiffFrameSize_ = 100 * 100 * kNbChannels_;
-    constexpr static size_t kDistFrameSize_ = 50 * 50 * kNbChannels_;
+    constexpr static size_t kDiffFrameSize_ = 100 * 100 * kNbChannels_; // difference filters 
+    constexpr static size_t kDistFrameSize_ = 50 * 50 * kNbChannels_;   // small cnn
     static const cv::Size kDiffResol_;
     static const cv::Size kDistResol_;
 
-  private:
-    noscope::filters::DifferenceFilter diff_filt_;
+    size_t stream_id_;
+    std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > gQueue_; // gather frames for yolo
 	noscope::NoscopeVideo* reader_;
+
+  private:
+    std::string graph_;
+    std::string name_;
+    float lower_diff_thresh_;
+    float upper_diff_thresh_;
+    float distill_thresh_lower_;
+    float distill_thresh_upper_;
+    bool skip_diff_detection_;
+    bool skip_small_cnn_;
+    bool const_ref_;    // unused 
+    size_t kRef_;       // unused 
+    noscope::filters::DifferenceFilter diff_filt_;
 	
 	cv::Mat avg_;
 	tensorflow::Session *session_;
 
-    std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > vQueue_;
+    std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > vQueue_; // reading video frames
 
 /** the thread for running differenceFilter */
     std::unique_ptr<std::thread> diff_thread_;
@@ -54,6 +65,7 @@ class NoscopeStream {
     noscope::SimpleQueue<noscope::Frame*> small_input_;
     
     constexpr static size_t kMaxCNNImages_ = 64;
+    bool end_;
 };
 
 } // namespace noscope
