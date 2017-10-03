@@ -157,6 +157,7 @@ CORE_PROTO_SRCS = [
     "protobuf/saver.proto",
     "util/memmapped_file_system.proto",
     "util/saved_tensor_slice.proto",
+#    "protobuf/noscope.proto",
 ]
 
 # Protos which are not needed on mobile builds, but should be included in
@@ -180,6 +181,15 @@ ADDITIONAL_CORE_PROTO_SRCS = [
 tf_proto_library(
     name = "reader_base_proto",
     srcs = ["framework/reader_base.proto"],
+    cc_api_version = 2,
+    go_api_version = 2,
+    java_api_version = 2,
+    visibility = ["//visibility:public"],
+)
+
+tf_proto_library(
+    name = "noscope_proto",
+    srcs = ["protobuf/noscope.proto"],
     cc_api_version = 2,
     go_api_version = 2,
     java_api_version = 2,

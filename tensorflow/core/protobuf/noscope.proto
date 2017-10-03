@@ -13,12 +13,24 @@ message StreamParameter {
   optional string avg_fname = 1;
   optional bool use_blocked = 2 [default = false];
   optional bool skip_diff_detection = 3 [default = false];
+  optional bool skip_small_cnn = 12 [default = false];
   optional float lower_thresh = 4 [default = 0.0];
   optional float upper_thresh = 5 [default = 10000000];
   optional bool const_ref = 6 [default = false];
   optional uint32 ref = 7 [default = 0];
   optional float distill_thresh_lower = 8;
   optional float distill_thresh_upper = 9;
+  optional string graph = 11;
+  optional string name = 13;
 
   optional VideoParameter video_param = 10;
+}
+
+message StreamSetParameter {
+  optional string name = 1;
+  optional string yolo_cfg = 2;
+  optional string yolo_weights = 3;
+  optional uint32 yolo_class = 4;
+
+  repeated StreamParameter stream = 100;
 }
