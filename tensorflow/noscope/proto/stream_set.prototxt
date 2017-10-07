@@ -1,7 +1,7 @@
 name: "noscope_test"
-yolo_cfg: "/home/li/opensource/stanford-futuredata/tensorflow-noscope/tensorflow/noscope/darknet/cfg/yolo.cfg"
-yolo_weights: "/home/li/opensource/stanford-futuredata/tensorflow-noscope/tensorflow/noscope/darknet/weights/yolo.weights"
-yolo_class: 3 
+yolo_cfg: "/home/li/opensource/stanford-futuredata/tensorflow-noscope/tensorflow/noscope/darknet/cfg/yolo.2.0.cfg"
+yolo_weights: "/home/li/opensource/stanford-futuredata/tensorflow-noscope/tensorflow/noscope/darknet/weights/yolo.2.0.weights"
+yolo_class: 2 
 
 stream {
   name: "jackson-town-square"
@@ -18,8 +18,8 @@ stream {
   graph: "/home/li/opensource/stanford-futuredata/data/cnn-models/jackson-town-square_convnet_128_32_0.pb"
   video_param {
     path: "/home/li/opensource/stanford-futuredata/data/videos/jackson-town-square.mp4"
-    skip: 300
-    frame_size: 1800
-    start: 1836000 
+    skip: 1 
+    frame_size: 100
+    start: 0 
   }
 }
