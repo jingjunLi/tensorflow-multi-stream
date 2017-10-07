@@ -19,7 +19,7 @@ stream {
   video_param {
     path: "/home/li/opensource/stanford-futuredata/data/videos/jackson-town-square.mp4"
     skip: 1 
-    frame_size: 100
+    frame_size: 10000
     start: 0 
   }
 }

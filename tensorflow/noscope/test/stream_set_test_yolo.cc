@@ -21,8 +21,8 @@ int main(int argc, char* argv[]) {
   //auto sQueue = std::shared_ptr<noscope::SimpleQueue<noscope::Frame* > >(new noscope::SimpleQueue<noscope::Frame*>); 
   std::cout << "in main" << std::endl;
   noscope::StreamSet stream_set("/home/li/opensource/stanford-futuredata/tensorflow-noscope/tensorflow/noscope/proto/stream_set.prototxt"); 
-  stream_set.Start();
+  stream_set.YOLOTEST();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(10000));
   return 0;
 }
