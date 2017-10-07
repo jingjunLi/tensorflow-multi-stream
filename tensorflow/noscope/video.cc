@@ -1,4 +1,4 @@
-#include "tensorflow/noscope/noscope_video.h"
+#include "tensorflow/noscope/video.h"
 
 namespace noscope {
 
@@ -52,15 +52,16 @@ NoscopeVideo::~NoscopeVideo() {
 }
 
 void NoscopeVideo::Reading() {
-  cv::Mat frame; 
   noscope::Frame* frame_in;
+  cv::Mat frame; 
   for (size_t i = 0; i < kNbFrames_; i++) {
     cap_ >> frame;
 
     // 每 KSkip_ 帧 读取 1 帧 
     if (i % kSkip_ == 0) {
       frame_in = new noscope::Frame();
-      frame_in->frame = frame;
+      frame_in->frame.create(frame.size(), frame.type());
+      frame.copyTo(frame_in->frame);
       frame_in->frame_status = kUnprocessed; 
       frame_in->frame_id = i;
       frame_in->video_id = id_; 

@@ -3,7 +3,7 @@
 
 #include "tensorflow/noscope/common.h"
 #include "tensorflow/noscope/darknet/src/yolo.h"
-#include "tensorflow/noscope/noscope_stream.h"
+#include "tensorflow/noscope/stream.h"
 #include <fcntl.h>
 
 namespace noscope {
@@ -17,6 +17,7 @@ class StreamSet {
     void SetUp();
     void Start();
     void RunYOLO();
+    void YOLOTEST();
     ~StreamSet();
 
   private:
@@ -35,7 +36,7 @@ class StreamSet {
     std::unique_ptr<std::thread> yolo_thread_;
     bool act_run_;
     int ends_;
-
+    
 };
 
 } // namespace noscope

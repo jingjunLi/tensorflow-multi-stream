@@ -2,7 +2,7 @@
 #define TENSORFLOW_NOSCOPE_STREAM_H_
 
 #include "tensorflow/noscope/common.h"
-#include "tensorflow/noscope/noscope_video.h"
+#include "tensorflow/noscope/video.h"
 #include <fcntl.h>
 
 namespace noscope {

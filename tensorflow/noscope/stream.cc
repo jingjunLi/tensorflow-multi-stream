@@ -1,4 +1,4 @@
-#include "tensorflow/noscope/noscope_stream.h"
+#include "tensorflow/noscope/stream.h"
 
 namespace noscope {
 
@@ -196,7 +196,8 @@ void NoscopeStream::RunDifferenceFilter() {
 void NoscopeStream::RunSmallCNN() {
 #if 1 
   std::vector<noscope::Frame*> input_im;
-  std::vector<cv::Mat> dist_frame_f(kMaxCNNImages_ * kDistFrameSize_);
+  std::vector<cv::Mat> input_frame(kMaxCNNImages_);
+  std::vector<cv::Mat> dist_frame_f(kMaxCNNImages_);
   std::vector<float> dist_data(kMaxCNNImages_ * kDistFrameSize_);
   noscope::Frame* frame_im;
   cv::Mat dist_frame(kDistResol_, CV_8UC3);
@@ -227,8 +228,23 @@ void NoscopeStream::RunSmallCNN() {
       
       //dist_frame_f[i] = float_frame;
       input_im.push_back(frame_im);
+      //input_frame.push_back(frame_im->frame);
     }
     kImagesToRun = input_im.size();
+#if 0
+      std::cout << "SmallCNN Push_back : ";
+    for (int i = 0; i < kImagesToRun; i++) {
+      frame_im =input_im.back();
+      input_im.pop_back();
+      const uint8_t *ptr = frame_im->frame.ptr<uint8_t>(0);
+      std::cout << "I: " << i << "frame id: " <<input_im.at(i)->frame_id;
+      for (size_t j = 0; j < 7500 ;) {
+        std::cout << ptr[j] << "  ";
+        j += 250;
+      }
+      std::cout << std::endl;
+    }
+#endif
     Tensor input(DT_FLOAT,
                  TensorShape({kImagesToRun,
                               kDistResol_.height,
@@ -276,10 +292,20 @@ void NoscopeStream::RunSmallCNN() {
       noscope::Frame* frame_o;
       for (int i = 0; i < kImagesToRun; ++i) {
         Status s;
-        frame_o = input_im[i]; 
+        frame_o = input_im.at(i); 
+        //frame_o->frame = input_frame.at(i);
         frame_o->cnn_difference = output_mapped(i, 1);
         std::cout << "Stream :" << frame_o->video_id << " frame id: " << frame_o->frame_id 
               <<  "   cnn_confidence    " << output_mapped(i, 1) << std::endl;
+#if 0
+      const uint8_t *ptr = frame_o->frame.ptr<uint8_t>(0);
+      std::cout << "SmallCNN Push : I: " << i;
+      for (size_t j = 0; j < 7500 ;) {
+        std::cout << ptr[j] << "  ";
+        j += 250;
+      }
+      std::cout << std::endl;
+#endif
         if (output_mapped(i, 1) < lower_diff_thresh_) {
           frame_o->label = oNone;
           frame_o->frame_status = kDistillFiltered;
@@ -296,6 +322,7 @@ void NoscopeStream::RunSmallCNN() {
     }
 
     input_im.clear();
+    //input_frame.clear();
     //dist_frame_f.clear();
   }
   end_ = true;

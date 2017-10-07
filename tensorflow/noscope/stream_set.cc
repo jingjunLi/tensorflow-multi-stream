@@ -34,7 +34,6 @@ void StreamSet::Init(const StreamSetParameter& param) {
   yolo_classifier_ = new yolo::YOLO(param.yolo_cfg(), param.yolo_weights(), param.yolo_class());
   act_run_ = true;
   ends_ = 0;
-
 }
 
 void StreamSet::SetUp() {
@@ -52,7 +51,7 @@ void StreamSet::Start() {
           new std::thread(&StreamSet::RunYOLO, this));
 }
 
-static image ipl_to_image(IplImage* src) {
+image ipl_to_image_set(IplImage* src) {
   unsigned char *data = (unsigned char *)src->imageData;
   // float *data = (float *) src->imageData;
   int h = src->height;
@@ -80,13 +79,22 @@ void StreamSet::RunYOLO() {
     std::vector<uint8_t> yolo_data(kYOLOFrameSize_);
     float yolo_confidence;
     while(sQueue_->Pop(&frame_out)) {
+#if 0
+      std::cout << "YOLO Pop: ";
+      const uint8_t *ptr = frame_out->frame.ptr<uint8_t>(0);
+      for (size_t j = 0; j < 7500 ;) {
+        std::cout << ptr[j] << "  ";
+        j += 250;
+      }
+      std::cout << std::endl;
+#endif
       cv::resize(frame_out->frame, yolo_frame, kYOLOResol_, 0, 0, cv::INTER_NEAREST);
      // memcpy(&yolo_data[0], yolo_frame.data, kYOLOFrameSize_);
      // 
      // cv::Mat cpp_frame(kYOLOResol_, CV_8UC3, 
      //                   const_cast<uint8_t *>(&yolo_data[0]));
       IplImage frame = yolo_frame;
-      image yolo_f = ipl_to_image(&frame);
+      image yolo_f = ipl_to_image_set(&frame);
       yolo_confidence = yolo_classifier_->LabelFrame(yolo_f);
       frame_out->yolo_confidence = yolo_confidence;
       free_image(yolo_f);
@@ -103,6 +111,29 @@ void StreamSet::RunYOLO() {
       if (ends_== streams_.size() )
         sQueue_->NoMoreJobs();
     }
+  }
+}
+
+void StreamSet::YOLOTEST() {
+  cv::VideoCapture cap;
+  cv::Mat frame;
+  noscope::Frame* frame_out;
+  cv::Mat yolo_frame(kYOLOResol_, CV_8UC3);
+  std::vector<uint8_t> yolo_data(kYOLOFrameSize_);
+  float yolo_confidence;
+  cap.open("/home/li/opensource/stanford-futuredata/data/videos/jackson-town-square.mp4");
+  for (int i = 0; i < 100; i++) {
+    cap >> frame;
+      cv::resize(frame, yolo_frame, kYOLOResol_, 0, 0, cv::INTER_NEAREST);
+     // memcpy(&yolo_data[0], yolo_frame.data, kYOLOFrameSize_);
+     // 
+     // cv::Mat cpp_frame(kYOLOResol_, CV_8UC3, 
+     //                   const_cast<uint8_t *>(&yolo_data[0]));
+      IplImage frame_i = yolo_frame;
+      image yolo_f = ipl_to_image_set(&frame_i);
+      yolo_confidence = yolo_classifier_->LabelFrame(yolo_f);
+      free_image(yolo_f);
+      std::cout << "i : " << i << "  confidence: " << yolo_confidence << std::endl ;
   }
 }
 
