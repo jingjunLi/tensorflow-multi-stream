@@ -24,10 +24,10 @@ void StreamSet::Init(const StreamSetParameter& param) {
   //streams_.resize(param.stream_size());
   //std::cout << "Streams Init , nums: " << streams_.size() << "params : " << param.stream_size() << std::endl;
   for (int stream_id = 0; stream_id < param.stream_size(); ++stream_id) {
-    const StreamParameter& stream_param = param.stream(stream_id);
+    StreamParameter stream_param = param.stream(stream_id);
     auto noscope_stream = std::shared_ptr<NoscopeStream>(new NoscopeStream(stream_param)); 
-    streams_.push_back(noscope_stream);
     noscope_stream->SetUp(stream_id, sQueue_);
+    streams_.push_back(noscope_stream);
     stream_names_.push_back(stream_param.name());
   }
 
@@ -73,6 +73,7 @@ image ipl_to_image_set(IplImage* src) {
 }
 
 void StreamSet::RunYOLO() {
+  bool nojobs = false;
   if (act_run_) {
     noscope::Frame* frame_out;
     cv::Mat yolo_frame(kYOLOResol_, CV_8UC3);
@@ -89,10 +90,6 @@ void StreamSet::RunYOLO() {
       std::cout << std::endl;
 #endif
       cv::resize(frame_out->frame, yolo_frame, kYOLOResol_, 0, 0, cv::INTER_NEAREST);
-     // memcpy(&yolo_data[0], yolo_frame.data, kYOLOFrameSize_);
-     // 
-     // cv::Mat cpp_frame(kYOLOResol_, CV_8UC3, 
-     //                   const_cast<uint8_t *>(&yolo_data[0]));
       IplImage frame = yolo_frame;
       image yolo_f = ipl_to_image_set(&frame);
       yolo_confidence = yolo_classifier_->LabelFrame(yolo_f);
@@ -103,13 +100,28 @@ void StreamSet::RunYOLO() {
       frame_out->label = cls;
       std::cout << "Stream :" << frame_out->video_id << " frame_id: " << frame_out->frame_id 
           << " yolo_confidence: " << yolo_confidence << std::endl;
-      ends_ = 0;
-      for (int i = 0; i < streams_.size(); ++i) {
-        if (streams_[i]->IsEnd())
-          ends_++;
+      if (!nojobs) {
+        int sn = 0;
+        for (int i = 0; i < streams_.size(); ++i) {
+          if (streams_[i]->IsEnd()) {
+            //std::cout << "Stream: " << i << " end!" << std::endl;
+            sn++;
+          }
+        }
+        if (sn == streams_.size()) {
+          nojobs = true;
+          sQueue_->NoMoreJobs();
+        }
       }
-      if (ends_== streams_.size() )
-        sQueue_->NoMoreJobs();
+      //ends_ = 0;
+      //for (int i = 0; i < streams_.size(); ++i) {
+      //  if (streams_[i]->IsEnd())
+      //    ends_++;
+      //}
+      //if (ends_ == streams_.size() ) {
+      //  std::cout << "End!" << std::endl;
+      //  sQueue_->NoMoreJobs();
+      //}
     }
   }
 }

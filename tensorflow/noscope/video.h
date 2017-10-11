@@ -7,11 +7,6 @@ namespace noscope {
 
 class NoscopeVideo {
   public:
-    //NoscopeVideo(const std::string& fname, const size_t kSkip, const size_t kNbFrames,
-    //        const size_t kStart,
-    //        std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > vQueue,
-    //        const size_t id
-    //        );
     NoscopeVideo(const VideoParameter& param);
     void SetUp(const size_t stream_id, std::shared_ptr<noscope::SimpleQueue<noscope::Frame*> > fQueue);
     void Start();

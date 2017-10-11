@@ -9,8 +9,9 @@ namespace noscope {
 
 using google::protobuf::Message;
 bool ReadProtoFromTextFile(const char* filename, Message* proto); 
-void DebugFrame_constuint8(const std::string& str, const uint8_t* ptr, int frames);
-void DebugFrame_vectorfloat(const std::string& str, std::vector<float> vec, int frames);
+
+template <typename Dtype>
+void Debug_String(const std::string& str, const Dtype* ptr, int N);
 
 class NoscopeStream {
   public:
@@ -21,7 +22,6 @@ class NoscopeStream {
 	void InitSession();
     void Start();
     void RunDifferenceFilter();
-    void PopulateCNNFrames();
     bool IsEnd();
 
     void RunSmallCNN();
@@ -41,10 +41,10 @@ class NoscopeStream {
   private:
     std::string graph_;
     std::string name_;
-    float lower_diff_thresh_;
+    float lower_diff_thresh_;      // differenceFilter thresh
     float upper_diff_thresh_;
-    float distill_thresh_lower_;
-    float distill_thresh_upper_;
+    float distill_thresh_lower_;   // small cnn thresh
+    float distill_thresh_upper_; 
     bool skip_diff_detection_;
     bool skip_small_cnn_;
     bool const_ref_;    // unused 
@@ -64,7 +64,7 @@ class NoscopeStream {
     noscope::SimpleQueue<noscope::Frame*> processed_;
     noscope::SimpleQueue<noscope::Frame*> small_input_;
     
-    constexpr static size_t kMaxCNNImages_ = 64;
+    constexpr static size_t kMaxCNNImages_ = 64; // small cnn batchsize
     bool end_;
 };
 

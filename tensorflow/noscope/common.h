@@ -18,6 +18,7 @@
 #include "tensorflow/core/protobuf/noscope.pb.h"
 #include "tensorflow/noscope/mse.h"
 #include "tensorflow/noscope/filters.h"
+#include "tensorflow/core/platform/logging.h"
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/platform/env.h"
 #include "tensorflow/core/framework/graph.pb.h"
